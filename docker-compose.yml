@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8787/api/v1
+    volumes:
+      - ./apps/web:/app/apps/web
+
+  api-worker:
+    build:
+      context: .
+      dockerfile: apps/api-worker/Dockerfile
+    ports:
+      - "8787:8787"
+    environment:
+      - ENVIRONMENT=development
+      - JWT_SECRET=jerseyflow_dev_secret_key_12345

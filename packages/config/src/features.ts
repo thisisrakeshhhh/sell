@@ -1,0 +1,6 @@
+export const FEATURE_FLAGS = {
+  WHATSAPP_ENABLED: true,
+  PAYMENTS_MANUAL_UPI_ENABLED: true,
+  INSTAGRAM_LOOKUP_ENABLED: true,
+  ANALYTICS_ENABLED: false,
+} as const;

@@ -1,0 +1,15 @@
+export const API_ROUTES = {
+  HEALTH: "/api/v1/health",
+  STORE: "/api/v1/store",
+  PRODUCTS: "/api/v1/products",
+  PRODUCT_BY_SLUG: (slug: string) => `/api/v1/products/${slug}`,
+  PRODUCT_BY_CODE: (code: string) => `/api/v1/products/code/${code}`,
+  INVENTORY: "/api/v1/inventory",
+  ORDERS: "/api/v1/orders",
+  ORDER_BY_ID: (id: string) => `/api/v1/orders/${id}`,
+  ORDER_STATUS: (id: string) => `/api/v1/orders/${id}/status`,
+  PAYMENTS: "/api/v1/payments",
+  VERIFY_PAYMENT: (id: string) => `/api/v1/payments/${id}/verify`,
+  PRESIGNED_URL: "/api/v1/uploads/presigned-url",
+  AUTH_LOGIN: "/api/v1/auth/login",
+} as const;

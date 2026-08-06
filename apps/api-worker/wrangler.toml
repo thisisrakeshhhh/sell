@@ -1,0 +1,15 @@
+name = "jerseyflow-api-worker"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+
+[vars]
+ENVIRONMENT = "development"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "jerseyflow-db"
+database_id = "local-d1-id"
+
+[[r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "jerseyflow-media"

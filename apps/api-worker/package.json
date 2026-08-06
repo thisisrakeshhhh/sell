@@ -1,0 +1,23 @@
+{
+  "name": "@jerseyflow/api-worker",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev src/index.ts",
+    "deploy": "wrangler deploy --minify src/index.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "wrangler d1 migrations apply jerseyflow-db --local"
+  },
+  "dependencies": {
+    "@jerseyflow/config": "*",
+    "@jerseyflow/types": "*",
+    "@jerseyflow/validation": "*",
+    "drizzle-orm": "^0.38.4",
+    "hono": "^4.6.17"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250109.0",
+    "drizzle-kit": "^0.30.2",
+    "wrangler": "^3.102.0"
+  }
+}
