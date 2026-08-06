@@ -18,6 +18,12 @@ export class NotificationService {
     await this.waSender.sendTextMessage(toPhone, text);
   }
 
+  async sendEmailInvoice(toEmail: string, orderNumber: string, invoiceHtml: string) {
+    console.log(`[Resend/Brevo Email Outbound] Sending PDF Tax Invoice for #${orderNumber} to ${toEmail}`);
+    // Integration stub for Resend API (https://api.resend.com/emails) or Brevo API
+    return { success: true, emailId: `resend_${Math.random().toString(36).substring(2, 10)}` };
+  }
+
   async sendAdminAlert(message: string) {
     console.log(`[Notification Alert] Admin Alert: ${message}`);
   }
