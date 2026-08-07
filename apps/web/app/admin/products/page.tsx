@@ -1,11 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Edit2, Archive, CheckCircle2, AlertTriangle, Shirt, Save, X, Image as ImageIcon } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Edit2, Archive, CheckCircle2, AlertTriangle, Shirt, Save, X, Trash2 } from "lucide-react";
 
 export default function AdminProductsPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
+
+  // Form State
+  const [formName, setFormName] = useState("");
+  const [formCode, setFormCode] = useState("");
+  const [formPrice, setFormPrice] = useState(999);
+  const [formStock, setFormStock] = useState<Record<string, number>>({ S: 10, M: 10, L: 10, XL: 5, "2XL": 2 });
 
   const [productsList, setProductsList] = useState([
     {
@@ -50,25 +56,120 @@ export default function AdminProductsPage() {
     },
   ]);
 
+  // Fetch live products from Worker API if available
+  useEffect(() => {
+    fetch("http://127.0.0.1:8788/api/v1/products")
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+          const apiProducts = res.data.map((p: any) => ({
+            code: p.code,
+            name: p.name,
+            sport: p.sport || "Football",
+            club: p.club || "General",
+            price: p.basePrice || 999,
+            stock: {
+              S: p.stockS || 0,
+              M: p.stockM || 0,
+              L: p.stockL || 0,
+              XL: p.stockXl || 0,
+              "2XL": p.stock2xl || 0,
+            },
+            active: p.isActive !== false,
+          }));
+          setProductsList(apiProducts);
+        }
+      })
+      .catch((err) => console.log("Using local state fallback for admin products:", err));
+  }, []);
+
+  const openCreateModal = () => {
+    setEditingProduct(null);
+    setFormName("");
+    setFormCode(`MU-00${productsList.length + 1}`);
+    setFormPrice(999);
+    setFormStock({ S: 10, M: 10, L: 10, XL: 5, "2XL": 2 });
+    setShowModal(true);
+  };
+
+  const openEditModal = (product: any) => {
+    setEditingProduct(product);
+    setFormName(product.name);
+    setFormCode(product.code);
+    setFormPrice(product.price);
+    setFormStock({ ...product.stock });
+    setShowModal(true);
+  };
+
+  const handleSaveProduct = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formName || !formCode) return;
+
+    if (editingProduct) {
+      // UPDATE EXISTING PRODUCT
+      setProductsList((prev) =>
+        prev.map((p) =>
+          p.code === editingProduct.code
+            ? { ...p, name: formName, code: formCode, price: formPrice, stock: { ...formStock } }
+            : p
+        )
+      );
+    } else {
+      // CREATE NEW PRODUCT
+      const newProduct = {
+        code: formCode.toUpperCase(),
+        name: formName,
+        sport: "Football",
+        club: "Custom",
+        price: formPrice,
+        discountPrice: formPrice + 500,
+        stock: { ...formStock },
+        active: true,
+      };
+      setProductsList((prev) => [newProduct, ...prev]);
+
+      // Post to Worker API
+      fetch("http://127.0.0.1:8788/api/v1/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: formCode.toUpperCase(),
+          name: formName,
+          basePrice: formPrice,
+          stockS: formStock.S,
+          stockM: formStock.M,
+          stockL: formStock.L,
+          stockXl: formStock.XL,
+          stock2xl: formStock["2XL"],
+        }),
+      }).catch((e) => console.log("Local state updated:", e));
+    }
+
+    setShowModal(false);
+  };
+
   const toggleArchive = (code: string) => {
-    setProductsList(
-      productsList.map((p) => (p.code === code ? { ...p, active: !p.active } : p))
+    setProductsList((prev) =>
+      prev.map((p) => (p.code === code ? { ...p, active: !p.active } : p))
     );
   };
 
+  const handleDeleteProduct = (code: string) => {
+    if (confirm(`Are you sure you want to delete SKU ${code}?`)) {
+      setProductsList((prev) => prev.filter((p) => p.code !== code));
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-[#09090b] space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Products & Visual Inventory</h1>
-          <p className="text-sm text-[#a1a1aa] mt-0.5">Manage jersey catalog, visual size matrix, pricing, and active status.</p>
+          <p className="text-sm text-[#a1a1aa] mt-0.5">Full CRUD: Create, Edit, Archive, or Delete jersey products & size matrix.</p>
         </div>
 
         <button
-          onClick={() => {
-            setEditingProduct(null);
-            setShowModal(true);
-          }}
+          onClick={openCreateModal}
           className="px-4 py-2.5 rounded-xl bg-[#10b981] text-black text-xs font-bold hover:bg-emerald-400 flex items-center gap-2 shadow-lg shadow-emerald-500/20"
         >
           <Plus className="w-4 h-4" />
@@ -76,7 +177,7 @@ export default function AdminProductsPage() {
         </button>
       </div>
 
-      {/* PRODUCTS TABLE WITH VISUAL STOCK MATRIX */}
+      {/* PRODUCTS TABLE WITH FULL CRUD ACTIONS */}
       <div className="glass-card p-6">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
@@ -100,7 +201,6 @@ export default function AdminProductsPage() {
                   </td>
                   <td className="py-4 font-bold text-white">₹{p.price}</td>
                   <td className="py-4">
-                    {/* VISUAL STOCK MATRIX */}
                     <div className="flex items-center gap-2 font-mono">
                       {Object.entries(p.stock).map(([sz, qty]) => (
                         <span
@@ -130,19 +230,25 @@ export default function AdminProductsPage() {
                   <td className="py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button
-                        onClick={() => {
-                          setEditingProduct(p);
-                          setShowModal(true);
-                        }}
+                        onClick={() => openEditModal(p)}
+                        title="Edit Product"
                         className="p-1.5 rounded-lg bg-[#18181b] border border-white/10 text-white hover:border-[#10b981]"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => toggleArchive(p.code)}
+                        title="Toggle Archive"
                         className="p-1.5 rounded-lg bg-[#18181b] border border-white/10 text-white hover:border-amber-400"
                       >
                         <Archive className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteProduct(p.code)}
+                        title="Delete Product"
+                        className="p-1.5 rounded-lg bg-[#18181b] border border-white/10 text-red-400 hover:border-red-500 hover:bg-red-500/10"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </td>
@@ -156,12 +262,12 @@ export default function AdminProductsPage() {
       {/* CREATE / EDIT PRODUCT MODAL */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6">
-          <div className="glass-card p-6 w-full max-w-lg space-y-4">
+          <form onSubmit={handleSaveProduct} className="glass-card p-6 w-full max-w-lg space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-white/10">
               <h3 className="text-base font-bold text-white">
-                {editingProduct ? `Edit ${editingProduct.code}` : "Create New Jersey Product"}
+                {editingProduct ? `Edit SKU ${editingProduct.code}` : "Create New Jersey Product"}
               </h3>
-              <button onClick={() => setShowModal(false)} className="text-[#a1a1aa] hover:text-white">
+              <button type="button" onClick={() => setShowModal(false)} className="text-[#a1a1aa] hover:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -171,7 +277,9 @@ export default function AdminProductsPage() {
                 <label className="text-xs text-[#a1a1aa] block mb-1">Product Name</label>
                 <input
                   type="text"
-                  defaultValue={editingProduct?.name || ""}
+                  required
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
                   placeholder="e.g. Manchester United Home 25/26"
                   className="w-full px-3 py-2 rounded-xl bg-[#09090b] border border-white/10 text-white text-xs outline-none focus:border-[#10b981]"
                 />
@@ -182,7 +290,9 @@ export default function AdminProductsPage() {
                   <label className="text-xs text-[#a1a1aa] block mb-1">SKU Code</label>
                   <input
                     type="text"
-                    defaultValue={editingProduct?.code || "MU-005"}
+                    required
+                    value={formCode}
+                    onChange={(e) => setFormCode(e.target.value.toUpperCase())}
                     placeholder="MU-005"
                     className="w-full px-3 py-2 rounded-xl bg-[#09090b] border border-white/10 text-white text-xs font-mono outline-none focus:border-[#10b981]"
                   />
@@ -191,7 +301,9 @@ export default function AdminProductsPage() {
                   <label className="text-xs text-[#a1a1aa] block mb-1">Price (₹)</label>
                   <input
                     type="number"
-                    defaultValue={editingProduct?.price || 999}
+                    required
+                    value={formPrice}
+                    onChange={(e) => setFormPrice(Number(e.target.value))}
                     className="w-full px-3 py-2 rounded-xl bg-[#09090b] border border-white/10 text-white text-xs outline-none focus:border-[#10b981]"
                   />
                 </div>
@@ -205,7 +317,8 @@ export default function AdminProductsPage() {
                       <span className="text-[10px] text-[#a1a1aa] block text-center font-mono">{sz}</span>
                       <input
                         type="number"
-                        defaultValue={editingProduct?.stock?.[sz] ?? 10}
+                        value={formStock[sz] ?? 0}
+                        onChange={(e) => setFormStock({ ...formStock, [sz]: Number(e.target.value) })}
                         className="w-full px-2 py-1 rounded bg-[#09090b] border border-white/10 text-white text-xs text-center font-mono outline-none"
                       />
                     </div>
@@ -215,13 +328,13 @@ export default function AdminProductsPage() {
             </div>
 
             <button
-              onClick={() => setShowModal(false)}
+              type="submit"
               className="w-full py-2.5 rounded-full bg-[#10b981] text-black font-bold text-xs hover:bg-emerald-400 flex items-center justify-center gap-2 mt-4"
             >
               <Save className="w-4 h-4" />
-              <span>Save Product</span>
+              <span>{editingProduct ? "Update Product" : "Create Product"}</span>
             </button>
-          </div>
+          </form>
         </div>
       )}
     </div>
