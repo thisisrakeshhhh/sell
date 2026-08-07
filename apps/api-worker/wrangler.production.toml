@@ -7,8 +7,8 @@ ENVIRONMENT = "production"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "jerseyflow-db-prod"
-database_id = "production-d1-uuid-here"
+database_name = "jerseyflow-db"
+database_id = "e4ce34ae-fe12-46ec-9fb8-6366ee38e5f8"
 
 [[r2_buckets]]
 binding = "MEDIA_BUCKET"

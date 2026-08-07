@@ -3,12 +3,12 @@ main = "src/index.ts"
 compatibility_date = "2024-11-01"
 
 [vars]
-ENVIRONMENT = "development"
+ENVIRONMENT = "production"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "jerseyflow-db"
-database_id = "local-d1-id"
+database_id = "e4ce34ae-fe12-46ec-9fb8-6366ee38e5f8"
 
 [[r2_buckets]]
 binding = "MEDIA_BUCKET"
