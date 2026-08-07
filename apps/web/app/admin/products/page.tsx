@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2, Save, X, Image as ImageIcon } from "lucide-react";
+import { Plus, Edit2, Trash2, Save, X, Image as ImageIcon, Upload } from "lucide-react";
 
 interface ProductStock {
   S: number;
@@ -156,6 +156,20 @@ export default function AdminProductsPage() {
     setFormAllowNumber(product.allowCustomNumber);
     setFormStatus(product.active ? "published" : "draft");
     setShowModal(true);
+  };
+
+  // Convert File upload to Base64 Data URL for instant thumbnail preview & persistence
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") {
+          setFormImage(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSaveProduct = (e: React.FormEvent) => {
@@ -324,7 +338,7 @@ export default function AdminProductsPage() {
         </div>
       </div>
 
-      {/* ADD / EDIT PRODUCT MODAL FORM WITH IMAGE URL & PREVIEW */}
+      {/* ADD / EDIT PRODUCT MODAL FORM WITH DIRECT IMAGE UPLOAD & URL PREVIEW */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6">
           <form onSubmit={handleSaveProduct} className="glass-card p-6 w-full max-w-xl space-y-4 max-h-[90vh] overflow-y-auto">
@@ -350,24 +364,44 @@ export default function AdminProductsPage() {
                 />
               </div>
 
-              {/* IMAGE URL INPUT & LIVE THUMBNAIL PREVIEW */}
+              {/* IMAGE UPLOAD & URL INPUT WITH LIVE PREVIEW */}
               <div>
-                <label className="text-[#a1a1aa] block mb-1 font-medium">Product Image URL</label>
-                <div className="flex gap-3 items-center">
-                  <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-white/10 overflow-hidden shrink-0 flex items-center justify-center">
+                <label className="text-[#a1a1aa] block mb-1.5 font-medium">Product Image</label>
+                <div className="flex items-center gap-3">
+                  <div className="w-14 h-14 rounded-xl bg-zinc-900 border border-white/10 overflow-hidden shrink-0 flex items-center justify-center shadow-inner">
                     {formImage ? (
                       <img src={formImage} alt="Preview" className="w-full h-full object-cover" />
                     ) : (
                       <ImageIcon className="w-5 h-5 text-[#a1a1aa]" />
                     )}
                   </div>
-                  <input
-                    type="url"
-                    value={formImage}
-                    onChange={(e) => setFormImage(e.target.value)}
-                    placeholder="https://images.unsplash.com/photo-..."
-                    className="flex-1 px-3 py-2.5 rounded-xl bg-[#09090b] border border-white/10 text-white outline-none focus:border-[#10b981] font-mono text-[11px]"
-                  />
+
+                  <div className="flex-1 space-y-2">
+                    <div className="flex gap-2">
+                      <label
+                        htmlFor="jersey-file-upload"
+                        className="px-3 py-2 rounded-xl bg-[#18181b] border border-white/10 hover:border-[#10b981] text-white font-semibold flex items-center gap-2 cursor-pointer transition-all text-[11px]"
+                      >
+                        <Upload className="w-3.5 h-3.5 text-[#10b981]" />
+                        <span>Upload File</span>
+                      </label>
+                      <input
+                        id="jersey-file-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                      />
+
+                      <input
+                        type="url"
+                        value={formImage}
+                        onChange={(e) => setFormImage(e.target.value)}
+                        placeholder="Or paste Image URL..."
+                        className="flex-1 px-3 py-2 rounded-xl bg-[#09090b] border border-white/10 text-white outline-none focus:border-[#10b981] font-mono text-[11px]"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 
