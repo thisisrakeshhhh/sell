@@ -14,6 +14,7 @@ binding = "DB"
 database_name = "jerseyflow-db"
 database_id = "e4ce34ae-fe12-46ec-9fb8-6366ee38e5f8"
 
-[[r2_buckets]]
-binding = "MEDIA_BUCKET"
-bucket_name = "jerseyflow-media"
+# R2 bucket can be enabled in Cloudflare Dashboard
+# [[r2_buckets]]
+# binding = "MEDIA_BUCKET"
+# bucket_name = "jerseyflow-media"
