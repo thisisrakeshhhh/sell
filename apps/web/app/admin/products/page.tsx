@@ -1,19 +1,38 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Edit2, Archive, CheckCircle2, AlertTriangle, Shirt, Save, X, Trash2 } from "lucide-react";
+import { Plus, Edit2, Archive, Shirt, Save, X, Trash2 } from "lucide-react";
+
+interface ProductStock {
+  S: number;
+  M: number;
+  L: number;
+  XL: number;
+  "2XL": number;
+}
+
+interface ProductItem {
+  code: string;
+  name: string;
+  sport: string;
+  club: string;
+  price: number;
+  discountPrice?: number;
+  stock: ProductStock;
+  active: boolean;
+}
 
 export default function AdminProductsPage() {
   const [showModal, setShowModal] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
 
   // Form State
   const [formName, setFormName] = useState("");
   const [formCode, setFormCode] = useState("");
   const [formPrice, setFormPrice] = useState(999);
-  const [formStock, setFormStock] = useState<Record<string, number>>({ S: 10, M: 10, L: 10, XL: 5, "2XL": 2 });
+  const [formStock, setFormStock] = useState<ProductStock>({ S: 10, M: 10, L: 10, XL: 5, "2XL": 2 });
 
-  const [productsList, setProductsList] = useState([
+  const [productsList, setProductsList] = useState<ProductItem[]>([
     {
       code: "MU-001",
       name: "Manchester United Home 24/25",
@@ -62,7 +81,7 @@ export default function AdminProductsPage() {
       .then((res) => res.json())
       .then((res) => {
         if (res.data && Array.isArray(res.data) && res.data.length > 0) {
-          const apiProducts = res.data.map((p: any) => ({
+          const apiProducts: ProductItem[] = res.data.map((p: any) => ({
             code: p.code,
             name: p.name,
             sport: p.sport || "Football",
@@ -92,7 +111,7 @@ export default function AdminProductsPage() {
     setShowModal(true);
   };
 
-  const openEditModal = (product: any) => {
+  const openEditModal = (product: ProductItem) => {
     setEditingProduct(product);
     setFormName(product.name);
     setFormCode(product.code);
@@ -116,7 +135,7 @@ export default function AdminProductsPage() {
       );
     } else {
       // CREATE NEW PRODUCT
-      const newProduct = {
+      const newProduct: ProductItem = {
         code: formCode.toUpperCase(),
         name: formName,
         sport: "Football",
@@ -161,7 +180,7 @@ export default function AdminProductsPage() {
   };
 
   return (
-    <div className="space-[#09090b] space-y-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Products & Visual Inventory</h1>
@@ -202,20 +221,23 @@ export default function AdminProductsPage() {
                   <td className="py-4 font-bold text-white">₹{p.price}</td>
                   <td className="py-4">
                     <div className="flex items-center gap-2 font-mono">
-                      {Object.entries(p.stock).map(([sz, qty]) => (
-                        <span
-                          key={sz}
-                          className={`px-2 py-1 rounded text-[10px] font-bold border ${
-                            qty === 0
-                              ? "bg-red-500/10 border-red-500/30 text-red-400"
-                              : qty <= 2
-                              ? "bg-amber-500/10 border-amber-500/30 text-amber-300"
-                              : "bg-white/5 border-white/10 text-white"
-                          }`}
-                        >
-                          {sz}: {qty} {qty === 0 ? "❌" : qty <= 2 ? "🔴" : ""}
-                        </span>
-                      ))}
+                      {(["S", "M", "L", "XL", "2XL"] as const).map((sz) => {
+                        const qty = p.stock[sz];
+                        return (
+                          <span
+                            key={sz}
+                            className={`px-2 py-1 rounded text-[10px] font-bold border ${
+                              qty === 0
+                                ? "bg-red-500/10 border-red-500/30 text-red-400"
+                                : qty <= 2
+                                ? "bg-amber-500/10 border-amber-500/30 text-amber-300"
+                                : "bg-white/5 border-white/10 text-white"
+                            }`}
+                          >
+                            {sz}: {qty} {qty === 0 ? "❌" : qty <= 2 ? "🔴" : ""}
+                          </span>
+                        );
+                      })}
                     </div>
                   </td>
                   <td className="py-4">
@@ -312,7 +334,7 @@ export default function AdminProductsPage() {
               <div>
                 <label className="text-xs text-[#a1a1aa] block mb-1">Size Stock Matrix</label>
                 <div className="grid grid-cols-5 gap-2">
-                  {["S", "M", "L", "XL", "2XL"].map((sz) => (
+                  {(["S", "M", "L", "XL", "2XL"] as const).map((sz) => (
                     <div key={sz}>
                       <span className="text-[10px] text-[#a1a1aa] block text-center font-mono">{sz}</span>
                       <input
