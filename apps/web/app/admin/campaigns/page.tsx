@@ -1,7 +1,6 @@
 "use client";
 
-import { Instagram, TrendingUp, Eye, ShoppingCart, DollarSign, ExternalLink, MessageSquare } from "lucide-[#09090b]";
-import { ArrowUpRight } from "lucide-react";
+import { Instagram, TrendingUp, Eye, ShoppingCart, DollarSign, ExternalLink, MessageSquare, ArrowUpRight } from "lucide-react";
 
 export default function CampaignAnalyticsPage() {
   const campaigns = [
@@ -123,7 +122,7 @@ export default function CampaignAnalyticsPage() {
                   <td className="py-4 font-mono font-bold text-white">{c.visitors}</td>
                   <td className="py-4 font-mono text-white">{c.productViews}</td>
                   <td className="py-4 font-mono font-bold text-emerald-400">{c.waOrdersInitiated}</td>
-                  <td className="py-4 font-mono font-bold text-white">{c.completedOrders}</td>
+                  <td className="py-4 font-mono font-bold text-[#f4f4f5]">{c.completedOrders}</td>
                   <td className="py-4 font-mono font-bold text-white">₹{c.revenue.toLocaleString("en-IN")}</td>
                   <td className="py-4 text-right font-mono font-bold text-emerald-400">{c.conversionRate}%</td>
                 </tr>
