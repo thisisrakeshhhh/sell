@@ -3,185 +3,147 @@
 import { use, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, MessageCircle, ShieldCheck, Truck, RotateCcw, Sparkles, Instagram } from "lucide-react";
+import { ArrowLeft, MessageCircle, Sparkles } from "lucide-react";
 
 export default function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = use(params);
   const slug = resolvedParams.slug;
   const searchParams = useSearchParams();
 
-  const source = searchParams.get("source") || "instagram";
+  const source = searchParams.get("source") || "Instagram";
   const campaign = searchParams.get("campaign") || "direct_view";
 
-  const [selectedSize, setSelectedSize] = useState("L");
-  const [customName, setCustomName] = useState("RONALDO");
-  const [customNumber, setCustomNumber] = useState("7");
+  const [selectedSize, setSelectedSize] = useState("XL");
+  const [customName, setCustomName] = useState("Rakesh");
+  const [customNumber, setCustomNumber] = useState("10");
 
   const product = {
-    code: slug.toUpperCase().includes("BAR") ? "BAR-004" : slug.toUpperCase().includes("RMA") ? "RMA-007" : "MU-001",
-    slug: slug,
+    code: slug.toUpperCase().includes("BAR")
+      ? "BAR-10"
+      : slug.toUpperCase().includes("RMA")
+      ? "RMA-07"
+      : slug.toUpperCase().includes("IND")
+      ? "IND-18"
+      : "MU-18",
     name: slug.includes("barcelona")
-      ? "FC Barcelona Away 24/25 Player Edition"
+      ? "FC Barcelona Away 24/25"
       : slug.includes("madrid")
-      ? "Real Madrid Home 24/25 Edition"
-      : "Manchester United Home 24/25 Stadium Edition",
-    club: slug.includes("barcelona") ? "FC Barcelona" : slug.includes("madrid") ? "Real Madrid" : "Manchester United",
-    sport: "Football",
-    season: "24/25",
-    price: slug.includes("barcelona") ? 1099 : 999,
-    originalPrice: 1499,
+      ? "Real Madrid Home 24/25"
+      : slug.includes("india")
+      ? "Team India T20 Champions Kit"
+      : "Manchester United Home 24/25",
+    price: slug.includes("barcelona") ? 1099 : slug.includes("india") ? 899 : 999,
+    compareAtPrice: 1499,
     image: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80",
-    description: "Official stadium edition home jersey. Engineered with breathable moisture-wicking Dri-FIT fabric. Custom printing uses authentic heat-applied vinyl typography.",
-    stock: 2,
+    availableSizes: ["S", "M", "L", "XL", "2XL"],
   };
 
-  // WHATSAPP ORDER PAYLOAD WITH INSTAGRAM CAMPAIGN ATTRIBUTION
-  const formattedMessage = `Hi 👋\n\nI'd like to order this jersey from your Instagram showcase.\n\nProduct:\n${product.name}\n\nCode:\n${product.code}\n\nSize:\n${selectedSize}\n\nName:\n${customName || "None"}\n\nNumber:\n${customNumber || "None"}\n\nPrice:\n₹${product.price}\n\nSource:\n${source} (${campaign})\n\nPlease confirm my order.`;
+  // EXACT WHATSAPP PAYLOAD
+  const formattedMessage = `Hi, I want to order:\n\nProduct: ${product.name}\nSKU: ${product.code}\nSize: ${selectedSize}\nName: ${customName || "None"}\nNumber: ${customNumber || "None"}\nSource: ${source}\nCampaign: ${campaign}`;
 
   const whatsappUrl = `https://wa.me/919999999999?text=${encodeURIComponent(formattedMessage)}`;
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-[#f4f4f5] pt-12 pb-24 px-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <Link href="/products" className="inline-flex items-center gap-2 text-sm text-[#a1a1aa] hover:text-[#10b981] transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Digital Showroom</span>
-          </Link>
+    <div className="min-h-screen bg-[#09090b] text-[#f4f4f5] pt-8 pb-24 px-6">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <Link href="/products" className="inline-flex items-center gap-2 text-sm text-[#a1a1aa] hover:text-[#10b981] transition-colors">
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Collection</span>
+        </Link>
 
-          {campaign && (
-            <span className="px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-400 text-xs font-mono font-semibold flex items-center gap-1.5">
-              <Instagram className="w-3.5 h-3.5" />
-              <span>Ref: {source} ({campaign})</span>
-            </span>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          {/* LEFT: LIGHTWEIGHT CSS OVERLAY CUSTOMIZER PREVIEW */}
-          <div className="glass-card p-6 flex flex-col items-center justify-center relative">
-            <div className="relative w-full max-w-md aspect-square rounded-2xl overflow-hidden bg-zinc-900 shadow-2xl flex items-center justify-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+          {/* PRODUCT IMAGE & LIVE BACK PRINT PREVIEW */}
+          <div className="glass-card p-4 flex flex-col items-center justify-center">
+            <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-zinc-900 flex items-center justify-center">
               <img src={product.image} alt={product.name} className="w-full h-full object-cover opacity-90" />
-
-              {/* OVERLAY JERSEY BACK PRINT PREVIEW */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-black/30 backdrop-blur-[2px]">
-                <div className="mt-8 uppercase font-extrabold tracking-widest text-white text-3xl sm:text-4xl drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)] font-mono">
+              
+              {/* BACK PRINT PREVIEW OVERLAY */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-black/30 backdrop-blur-[2px]">
+                <div className="uppercase font-extrabold text-white text-3xl font-mono drop-shadow-md">
                   {customName || "YOUR NAME"}
                 </div>
-                <div className="text-6xl sm:text-8xl font-black text-white tracking-tighter drop-shadow-[0_6px_14px_rgba(0,0,0,0.9)] font-mono mt-1">
-                  {customNumber || "7"}
+                <div className="text-7xl font-black text-white font-mono mt-1 drop-shadow-md">
+                  {customNumber || "10"}
                 </div>
               </div>
             </div>
-
-            <p className="text-xs text-[#a1a1aa] mt-4 text-center">
-              * Live CSS Preview: Authentic heat-pressed vinyl typography applied upon confirmation.
-            </p>
           </div>
 
-          {/* RIGHT: CUSTOMIZER FORM & NO-CART WHATSAPP DIRECT CTA */}
-          <div className="flex flex-col space-y-6">
+          {/* PRODUCT DETAILS & SELECTION */}
+          <div className="space-y-6">
             <div>
-              <div className="flex items-center gap-3">
-                <span className="px-2.5 py-1 rounded-md bg-[#10b981]/10 text-[#10b981] text-xs font-semibold uppercase font-mono">
-                  {product.code}
-                </span>
-                <span className="text-xs text-[#a1a1aa]">{product.club} • {product.season}</span>
-                {product.stock > 0 && product.stock <= 3 && (
-                  <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 text-xs font-mono font-bold">
-                    Only {product.stock} left
-                  </span>
-                )}
-              </div>
-              <h1 className="text-3xl font-extrabold text-white mt-2">{product.name}</h1>
-              <div className="mt-3 flex items-baseline gap-3">
-                <span className="text-3xl font-extrabold text-white">₹{product.price}</span>
-                <span className="text-base text-[#a1a1aa] line-through">₹{product.originalPrice}</span>
-                <span className="text-xs font-semibold text-[#10b981]">Save 33%</span>
+              <span className="text-xs font-mono font-bold text-[#10b981] uppercase">{product.code}</span>
+              <h1 className="text-2xl font-extrabold text-white mt-1">{product.name}</h1>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-white">₹{product.price}</span>
+                <span className="text-xs text-[#a1a1aa] line-through">₹{product.compareAtPrice}</span>
               </div>
             </div>
 
-            <p className="text-sm text-[#a1a1aa] leading-relaxed">{product.description}</p>
+            {/* AVAILABLE SIZES */}
+            <div>
+              <label className="text-xs text-[#a1a1aa] block mb-2 font-medium">Available sizes</label>
+              <div className="flex gap-2 font-mono">
+                {product.availableSizes.map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => setSelectedSize(size)}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                      selectedSize === size
+                        ? "bg-[#10b981] text-black shadow-md shadow-emerald-500/20"
+                        : "bg-[#18181b] text-white border border-white/10 hover:border-white/30"
+                    }`}
+                  >
+                    [{size}]
+                  </button>
+                ))}
+              </div>
+            </div>
 
-            {/* CUSTOMIZER CONTROLS */}
-            <div className="glass-card p-6 space-y-4 border-emerald-500/20">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#10b981]" />
-                <span>Personalize Your Jersey</span>
-              </h3>
+            {/* CUSTOMIZATION INPUTS */}
+            <div className="glass-card p-4 space-y-3">
+              <span className="text-xs font-semibold text-white flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-[#10b981]" />
+                <span>Customization</span>
+              </span>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-[#a1a1aa] block mb-1">Player Name on Back</label>
+                  <label className="text-[11px] text-[#a1a1aa] block mb-1">Name</label>
                   <input
                     type="text"
                     value={customName}
-                    onChange={(e) => setCustomName(e.target.value.toUpperCase())}
+                    onChange={(e) => setCustomName(e.target.value)}
                     maxLength={15}
-                    placeholder="E.G. BECKHAM"
-                    className="w-full px-3 py-2 rounded-xl bg-[#09090b] border border-white/10 text-white text-sm focus:border-[#10b981] outline-none uppercase tracking-wider font-mono"
+                    placeholder="Rakesh"
+                    className="w-full px-3 py-2 rounded-xl bg-[#09090b] border border-white/10 text-white text-xs font-mono outline-none focus:border-[#10b981]"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs text-[#a1a1aa] block mb-1">Squad Number</label>
+                  <label className="text-[11px] text-[#a1a1aa] block mb-1">Number</label>
                   <input
                     type="text"
                     value={customNumber}
                     onChange={(e) => setCustomNumber(e.target.value)}
                     maxLength={3}
-                    placeholder="7"
-                    className="w-full px-3 py-2 rounded-xl bg-[#09090b] border border-white/10 text-white text-sm focus:border-[#10b981] outline-none tracking-wider font-mono"
+                    placeholder="10"
+                    className="w-full px-3 py-2 rounded-xl bg-[#09090b] border border-white/10 text-white text-xs font-mono outline-none focus:border-[#10b981]"
                   />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs text-[#a1a1aa] block mb-2">Select Jersey Size</label>
-                <div className="grid grid-cols-5 gap-2 font-mono">
-                  {["S", "M", "L", "XL", "2XL"].map((size) => (
-                    <button
-                      key={size}
-                      onClick={() => setSelectedSize(size)}
-                      className={`py-2 rounded-xl text-xs font-semibold transition-all ${
-                        selectedSize === size
-                          ? "bg-[#10b981] text-black shadow-lg shadow-emerald-500/20 font-bold"
-                          : "bg-[#09090b] text-white border border-white/10 hover:border-white/30"
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
                 </div>
               </div>
             </div>
 
-            {/* DIRECT ORDER VIA WHATSAPP CTA — NO ADD TO CART */}
+            {/* DIRECT ORDER VIA WHATSAPP CTA */}
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full py-4 rounded-full bg-[#10b981] text-black font-bold text-base hover:bg-emerald-400 transition-all flex items-center justify-center gap-3 shadow-xl shadow-emerald-500/20"
+              className="w-full py-3.5 rounded-full bg-[#10b981] text-black font-bold text-sm hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
             >
-              <MessageCircle className="w-5 h-5 fill-current" />
-              <span>Order via WhatsApp</span>
+              <MessageCircle className="w-4 h-4 fill-current" />
+              <span>Order on WhatsApp</span>
             </a>
-
-            {/* TRUST BADGES */}
-            <div className="grid grid-cols-3 gap-4 pt-4 border-t border-white/10 text-center text-xs text-[#a1a1aa]">
-              <div className="flex flex-col items-center gap-1.5">
-                <Truck className="w-4 h-4 text-[#10b981]" />
-                <span>3–5 Days Express Delivery</span>
-              </div>
-              <div className="flex flex-col items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-[#10b981]" />
-                <span>COD / UPI Direct QR</span>
-              </div>
-              <div className="flex flex-col items-center gap-1.5">
-                <RotateCcw className="w-4 h-4 text-[#10b981]" />
-                <span>Free Shipping over ₹1500</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>
