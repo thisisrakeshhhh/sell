@@ -1,10 +1,26 @@
+"use client";
+
 import Link from "next/link";
-import { LayoutDashboard, ShoppingBag, Shirt, Users, Settings, LogOut } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { LayoutDashboard, ShoppingBag, Shirt, Users, Settings, LogOut, Instagram, Printer, Bot } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+
+  const navItems = [
+    { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
+    { href: "/admin/products", label: "Products & Stock", icon: Shirt },
+    { href: "/admin/campaigns", label: "Campaign Analytics", icon: Instagram },
+    { href: "/admin/printing-queue", label: "Printing Queue", icon: Printer },
+    { href: "/admin/ai-assistant", label: "AI Co-Pilot", icon: Bot },
+    { href: "/admin/customers", label: "Customers", icon: Users },
+    { href: "/admin/settings", label: "Settings", icon: Settings },
+  ];
+
   return (
     <div className="min-h-screen bg-[#09090b] text-[#f4f4f5] flex">
-      {/* SIDEBAR NAVIGATION (STREAMLINED 5 TABS) */}
+      {/* SIDEBAR NAVIGATION WITH DYNAMIC ACTIVE TAB STYLING */}
       <aside className="w-64 border-r border-white/10 p-6 flex flex-col justify-between shrink-0 bg-[#09090b]">
         <div>
           <div className="flex items-center gap-2 mb-8">
@@ -18,41 +34,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
 
           <nav className="space-y-1">
-            <Link
-              href="/admin"
-              className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-white bg-[#18181b] border border-white/10"
-            >
-              <LayoutDashboard className="w-4 h-4 text-[#10b981]" />
-              <span>Dashboard</span>
-            </Link>
-            <Link
-              href="/admin/orders"
-              className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-[#a1a1aa] hover:text-white hover:bg-[#18181b]/50 transition-colors"
-            >
-              <ShoppingBag className="w-4 h-4" />
-              <span>Orders</span>
-            </Link>
-            <Link
-              href="/admin/products"
-              className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-[#a1a1aa] hover:text-white hover:bg-[#18181b]/50 transition-colors"
-            >
-              <Shirt className="w-4 h-4" />
-              <span>Products & Stock</span>
-            </Link>
-            <Link
-              href="/admin/customers"
-              className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-[#a1a1aa] hover:text-white hover:bg-[#18181b]/50 transition-colors"
-            >
-              <Users className="w-4 h-4" />
-              <span>Customers</span>
-            </Link>
-            <Link
-              href="/admin/settings"
-              className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-[#a1a1aa] hover:text-white hover:bg-[#18181b]/50 transition-colors"
-            >
-              <Settings className="w-4 h-4" />
-              <span>Settings</span>
-            </Link>
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                    isActive
+                      ? "bg-[#18181b] text-white border border-white/10 shadow-lg shadow-emerald-500/5"
+                      : "text-[#a1a1aa] hover:text-white hover:bg-[#18181b]/50"
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 ${isActive ? "text-[#10b981]" : ""}`} />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
           </nav>
         </div>
 

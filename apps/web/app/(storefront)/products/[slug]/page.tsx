@@ -1,64 +1,61 @@
 "use client";
 
-import { useState } from "react";
+import { use, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, MessageCircle, ShieldCheck, Truck, RotateCcw, Sparkles } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { ArrowLeft, MessageCircle, ShieldCheck, Truck, RotateCcw, Sparkles, Instagram } from "lucide-react";
 
-export default function ProductDetailPage() {
+export default function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const resolvedParams = use(params);
+  const slug = resolvedParams.slug;
+  const searchParams = useSearchParams();
+
+  const source = searchParams.get("source") || "instagram";
+  const campaign = searchParams.get("campaign") || "direct_view";
+
   const [selectedSize, setSelectedSize] = useState("L");
   const [customName, setCustomName] = useState("RONALDO");
   const [customNumber, setCustomNumber] = useState("7");
 
   const product = {
-    code: "MU24H",
-    slug: "manchester-united-home-24-25",
-    name: "Manchester United Home 24/25 Stadium Edition",
-    club: "Manchester United",
+    code: slug.toUpperCase().includes("BAR") ? "BAR-004" : slug.toUpperCase().includes("RMA") ? "RMA-007" : "MU-001",
+    slug: slug,
+    name: slug.includes("barcelona")
+      ? "FC Barcelona Away 24/25 Player Edition"
+      : slug.includes("madrid")
+      ? "Real Madrid Home 24/25 Edition"
+      : "Manchester United Home 24/25 Stadium Edition",
+    club: slug.includes("barcelona") ? "FC Barcelona" : slug.includes("madrid") ? "Real Madrid" : "Manchester United",
     sport: "Football",
     season: "24/25",
-    price: 999,
+    price: slug.includes("barcelona") ? 1099 : 999,
     originalPrice: 1499,
     image: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80",
     description: "Official stadium edition home jersey. Engineered with breathable moisture-wicking Dri-FIT fabric. Custom printing uses authentic heat-applied vinyl typography.",
     stock: 2,
   };
 
-  // PRIORITY 1: STRUCTURED WHATSAPP MESSAGE PAYLOAD FORMATTING
-  const formattedMessage = `Hi 👋\n\nI'd like to order this jersey.\n\nProduct:\n${product.name}\n\nCode:\n${product.code}\n\nSize:\n${selectedSize}\n\nName:\n${customName || "None"}\n\nNumber:\n${customNumber || "None"}\n\nPrice:\n₹${product.price}\n\nPlease confirm my order.`;
+  // WHATSAPP ORDER PAYLOAD WITH INSTAGRAM CAMPAIGN ATTRIBUTION
+  const formattedMessage = `Hi 👋\n\nI'd like to order this jersey from your Instagram showcase.\n\nProduct:\n${product.name}\n\nCode:\n${product.code}\n\nSize:\n${selectedSize}\n\nName:\n${customName || "None"}\n\nNumber:\n${customNumber || "None"}\n\nPrice:\n₹${product.price}\n\nSource:\n${source} (${campaign})\n\nPlease confirm my order.`;
 
   const whatsappUrl = `https://wa.me/919999999999?text=${encodeURIComponent(formattedMessage)}`;
 
-  // PRIORITY 2: JSON-LD STRUCTURED DATA SCHEMA FOR PRODUCT DISCOVERABILITY
-  const jsonLd = {
-    "@context": "https://schema.org/",
-    "@type": "Product",
-    "name": product.name,
-    "image": [product.image],
-    "description": product.description,
-    "sku": product.code,
-    "offers": {
-      "@type": "Offer",
-      "url": `https://jerseyflow.com/products/${product.slug}`,
-      "priceCurrency": "INR",
-      "price": product.price,
-      "itemCondition": "https://schema.org/NewCondition",
-      "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#09090b] text-[#f4f4f5] pt-12 pb-24 px-6">
-      {/* JSON-LD SEO STRUCTURED DATA */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-
       <div className="max-w-7xl mx-auto">
-        <Link href="/products" className="inline-flex items-center gap-2 text-sm text-[#a1a1aa] hover:text-[#10b981] mb-8 transition-colors">
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Catalog</span>
-        </Link>
+        <div className="flex items-center justify-between mb-8">
+          <Link href="/products" className="inline-flex items-center gap-2 text-sm text-[#a1a1aa] hover:text-[#10b981] transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Digital Showroom</span>
+          </Link>
+
+          {campaign && (
+            <span className="px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-400 text-xs font-mono font-semibold flex items-center gap-1.5">
+              <Instagram className="w-3.5 h-3.5" />
+              <span>Ref: {source} ({campaign})</span>
+            </span>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           {/* LEFT: LIGHTWEIGHT CSS OVERLAY CUSTOMIZER PREVIEW */}
@@ -82,11 +79,11 @@ export default function ProductDetailPage() {
             </p>
           </div>
 
-          {/* RIGHT: CUSTOMIZER FORM & CHECKOUT DETAILS */}
+          {/* RIGHT: CUSTOMIZER FORM & NO-CART WHATSAPP DIRECT CTA */}
           <div className="flex flex-col space-y-6">
             <div>
               <div className="flex items-center gap-3">
-                <span className="px-2.5 py-1 rounded-md bg-[#10b981]/10 text-[#10b981] text-xs font-semibold uppercase">
+                <span className="px-2.5 py-1 rounded-md bg-[#10b981]/10 text-[#10b981] text-xs font-semibold uppercase font-mono">
                   {product.code}
                 </span>
                 <span className="text-xs text-[#a1a1aa]">{product.club} • {product.season}</span>
@@ -141,14 +138,14 @@ export default function ProductDetailPage() {
 
               <div>
                 <label className="text-xs text-[#a1a1aa] block mb-2">Select Jersey Size</label>
-                <div className="grid grid-cols-6 gap-2">
-                  {["S", "M", "L", "XL", "2XL", "3XL"].map((size) => (
+                <div className="grid grid-cols-5 gap-2 font-mono">
+                  {["S", "M", "L", "XL", "2XL"].map((size) => (
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
                       className={`py-2 rounded-xl text-xs font-semibold transition-all ${
                         selectedSize === size
-                          ? "bg-[#10b981] text-black shadow-lg shadow-emerald-500/20"
+                          ? "bg-[#10b981] text-black shadow-lg shadow-emerald-500/20 font-bold"
                           : "bg-[#09090b] text-white border border-white/10 hover:border-white/30"
                       }`}
                     >
@@ -159,7 +156,7 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            {/* ORDER ON WHATSAPP CTA */}
+            {/* DIRECT ORDER VIA WHATSAPP CTA — NO ADD TO CART */}
             <a
               href={whatsappUrl}
               target="_blank"
