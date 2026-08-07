@@ -88,12 +88,15 @@ export default function AdminProductsPage() {
     },
   ]);
 
-  // Fetch live products from Worker API
+  // Fetch live products with zero-crash defensive fallback
   useEffect(() => {
-    fetch("http://127.0.0.1:8788/api/v1/products")
-      .then((res) => res.json())
+    fetch("/api/v1/products")
       .then((res) => {
-        if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((res) => {
+        if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
           const apiProducts: ProductItem[] = res.data.map((p: any) => ({
             code: p.code,
             name: p.name,
@@ -116,7 +119,9 @@ export default function AdminProductsPage() {
           setProductsList(apiProducts);
         }
       })
-      .catch((e) => console.log("Using local state fallback for products:", e));
+      .catch((e) => {
+        console.warn("Using local state fallback for products:", e);
+      });
   }, []);
 
   const openCreateModal = () => {
@@ -191,8 +196,8 @@ export default function AdminProductsPage() {
       };
       setProductsList((prev) => [newProduct, ...prev]);
 
-      // Post to Cloudflare D1
-      fetch("http://127.0.0.1:8788/api/v1/products", {
+      // Defensive fetch to API
+      fetch("/api/v1/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -205,7 +210,7 @@ export default function AdminProductsPage() {
           stockXl: formStock.XL,
           stock2xl: formStock["2XL"],
         }),
-      }).catch((e) => console.log("Local D1 fallback:", e));
+      }).catch((e) => console.warn("Local state updated:", e));
     }
 
     setShowModal(false);
@@ -250,67 +255,63 @@ export default function AdminProductsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {productsList.map((p) => {
-                const totalStock = Object.values(p.stock).reduce((a, b) => a + b, 0);
-
-                return (
-                  <tr key={p.code} className={`hover:bg-white/5 transition-colors ${!p.active ? "opacity-40" : ""}`}>
-                    <td className="py-3">
-                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-zinc-900 border border-white/10 flex items-center justify-center">
-                        {p.image ? (
-                          <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <ImageIcon className="w-4 h-4 text-[#a1a1aa]" />
-                        )}
-                      </div>
-                    </td>
-                    <td className="py-3 font-mono font-bold text-[#10b981]">{p.code}</td>
-                    <td className="py-3 font-semibold text-white">{p.name}</td>
-                    <td className="py-3 font-bold text-white">₹{p.price}</td>
-                    <td className="py-3">
-                      <div className="flex items-center gap-1.5 font-mono">
-                        {(["S", "M", "L", "XL", "2XL"] as const).map((sz) => (
-                          <span
-                            key={sz}
-                            className={`px-1.5 py-0.5 rounded text-[10px] border ${
-                              p.stock[sz] === 0
-                                ? "bg-red-500/10 border-red-500/30 text-red-400"
-                                : "bg-white/5 border-white/10 text-white"
-                            }`}
-                          >
-                            {sz}:{p.stock[sz]}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="py-3">
-                      <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
-                          p.active ? "bg-emerald-500/10 text-emerald-400" : "bg-zinc-800 text-zinc-500"
-                        }`}
+              {productsList.map((p) => (
+                <tr key={p.code} className={`hover:bg-white/5 transition-colors ${!p.active ? "opacity-40" : ""}`}>
+                  <td className="py-3">
+                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-zinc-900 border border-white/10 flex items-center justify-center">
+                      {p.image ? (
+                        <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <ImageIcon className="w-4 h-4 text-[#a1a1aa]" />
+                      )}
+                    </div>
+                  </td>
+                  <td className="py-3 font-mono font-bold text-[#10b981]">{p.code}</td>
+                  <td className="py-3 font-semibold text-white">{p.name}</td>
+                  <td className="py-3 font-bold text-white">₹{p.price}</td>
+                  <td className="py-3">
+                    <div className="flex items-center gap-1.5 font-mono">
+                      {(["S", "M", "L", "XL", "2XL"] as const).map((sz) => (
+                        <span
+                          key={sz}
+                          className={`px-1.5 py-0.5 rounded text-[10px] border ${
+                            p.stock[sz] === 0
+                              ? "bg-red-500/10 border-red-500/30 text-red-400"
+                              : "bg-white/5 border-white/10 text-white"
+                          }`}
+                        >
+                          {sz}:{p.stock[sz]}
+                        </span>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="py-3">
+                    <span
+                      className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
+                        p.active ? "bg-emerald-500/10 text-emerald-400" : "bg-zinc-800 text-zinc-500"
+                      }`}
+                    >
+                      {p.active ? "Published" : "Draft"}
+                    </span>
+                  </td>
+                  <td className="py-3 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => openEditModal(p)}
+                        className="px-2.5 py-1 rounded bg-[#18181b] border border-white/10 text-white hover:border-[#10b981] text-[11px] font-medium"
                       >
-                        {p.active ? "Published" : "Draft"}
-                      </span>
-                    </td>
-                    <td className="py-3 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => openEditModal(p)}
-                          className="px-2.5 py-1 rounded bg-[#18181b] border border-white/10 text-white hover:border-[#10b981] text-[11px] font-medium"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteProduct(p.code)}
-                          className="p-1.5 rounded bg-[#18181b] border border-white/10 text-red-400 hover:border-red-500 hover:bg-red-500/10"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteProduct(p.code)}
+                        className="p-1.5 rounded bg-[#18181b] border border-white/10 text-red-400 hover:border-red-500 hover:bg-red-500/10"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
