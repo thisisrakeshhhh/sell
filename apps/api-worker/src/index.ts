@@ -33,6 +33,25 @@ app.use("*", async (c, next) => {
   c.res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
 });
 
+// Root Welcome Endpoint (Prevents 404 on http://127.0.0.1:8787/)
+app.get("/", (c) => {
+  return c.json({
+    status: "online",
+    name: "JerseyFlow Cloudflare Worker REST API",
+    version: "v1.0.0",
+    documentation: "https://github.com/thisisrakeshhhh/sell",
+    endpoints: {
+      health: "/api/v1/health",
+      dashboard: "/api/v1/dashboard",
+      catalog: "/api/v1/catalog",
+      products: "/api/v1/products",
+      orders: "/api/v1/orders",
+      customers: "/api/v1/customers",
+      search: "/api/v1/search?q=MU-001",
+    },
+  });
+});
+
 // Clean REST API Modules mounted under /api/v1
 app.route("/api/v1/health", healthRouter);
 app.route("/api/v1/dashboard", dashboardRouter);
@@ -43,5 +62,13 @@ app.route("/api/v1/orders", ordersRouter);
 app.route("/api/v1/draft-orders", draftOrdersRouter);
 app.route("/api/v1/customers", customersRouter);
 app.route("/api/v1/webhooks", webhooksRouter);
+
+// Fallback 404 Handler
+app.notFound((c) => {
+  return c.json({
+    success: false,
+    message: `Route '${c.req.path}' not found. Try visiting '/' for API index or '/api/v1/health'`,
+  }, 404);
+});
 
 export default app;
