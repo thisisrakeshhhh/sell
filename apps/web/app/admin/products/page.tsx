@@ -35,6 +35,7 @@ export default function AdminProductsPage() {
   const [formName, setFormName] = useState("");
   const [formSku, setFormSku] = useState("");
   const [formDescription, setFormDescription] = useState("");
+  const [formImage, setFormImage] = useState("");
   const [formPrice, setFormPrice] = useState(999);
   const [formCompareAtPrice, setFormCompareAtPrice] = useState(1499);
   const [formStock, setFormStock] = useState<ProductStock>({ S: 10, M: 15, L: 20, XL: 12, "2XL": 5 });
@@ -105,6 +106,7 @@ export default function AdminProductsPage() {
             club: p.club || "General",
             price: p.basePrice || 999,
             compareAtPrice: p.basePrice ? p.basePrice + 500 : 1499,
+            image: p.imageUrl || p.image || "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80",
             stock: {
               S: p.stockS || 0,
               M: p.stockM || 0,
@@ -129,6 +131,7 @@ export default function AdminProductsPage() {
     setFormName("");
     setFormSku(`MU-${productsList.length + 19}`);
     setFormDescription("");
+    setFormImage("https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80");
     setFormPrice(999);
     setFormCompareAtPrice(1499);
     setFormStock({ S: 10, M: 15, L: 20, XL: 12, "2XL": 5 });
@@ -144,6 +147,7 @@ export default function AdminProductsPage() {
     setFormName(product.name);
     setFormSku(product.code);
     setFormDescription(product.description || "");
+    setFormImage(product.image || "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80");
     setFormPrice(product.price);
     setFormCompareAtPrice(product.compareAtPrice);
     setFormStock({ ...product.stock });
@@ -169,6 +173,7 @@ export default function AdminProductsPage() {
                 name: formName,
                 code: formSku.toUpperCase(),
                 description: formDescription,
+                image: formImage,
                 price: formPrice,
                 compareAtPrice: formCompareAtPrice,
                 stock: { ...formStock },
@@ -188,7 +193,7 @@ export default function AdminProductsPage() {
         club: "Custom",
         price: formPrice,
         compareAtPrice: formCompareAtPrice,
-        image: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80",
+        image: formImage || "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80",
         stock: { ...formStock },
         allowCustomName: formAllowName,
         allowCustomNumber: formAllowNumber,
@@ -203,6 +208,8 @@ export default function AdminProductsPage() {
         body: JSON.stringify({
           code: formSku.toUpperCase(),
           name: formName,
+          description: formDescription,
+          imageUrl: formImage,
           basePrice: formPrice,
           stockS: formStock.S,
           stockM: formStock.M,
@@ -227,7 +234,7 @@ export default function AdminProductsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-extrabold text-white">Products</h1>
-          <p className="text-xs text-[#a1a1aa] mt-0.5">Manage jersey catalog, prices, and D1 size stock matrix.</p>
+          <p className="text-xs text-[#a1a1aa] mt-0.5">Manage jersey catalog, prices, photos, and D1 size stock matrix.</p>
         </div>
 
         <button
@@ -317,7 +324,7 @@ export default function AdminProductsPage() {
         </div>
       </div>
 
-      {/* ADD / EDIT PRODUCT MODAL FORM */}
+      {/* ADD / EDIT PRODUCT MODAL FORM WITH IMAGE URL & PREVIEW */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6">
           <form onSubmit={handleSaveProduct} className="glass-card p-6 w-full max-w-xl space-y-4 max-h-[90vh] overflow-y-auto">
@@ -341,6 +348,27 @@ export default function AdminProductsPage() {
                   placeholder="e.g. Manchester United Home 24/25"
                   className="w-full px-3 py-2 rounded-xl bg-[#09090b] border border-white/10 text-white outline-none focus:border-[#10b981]"
                 />
+              </div>
+
+              {/* IMAGE URL INPUT & LIVE THUMBNAIL PREVIEW */}
+              <div>
+                <label className="text-[#a1a1aa] block mb-1 font-medium">Product Image URL</label>
+                <div className="flex gap-3 items-center">
+                  <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-white/10 overflow-hidden shrink-0 flex items-center justify-center">
+                    {formImage ? (
+                      <img src={formImage} alt="Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <ImageIcon className="w-5 h-5 text-[#a1a1aa]" />
+                    )}
+                  </div>
+                  <input
+                    type="url"
+                    value={formImage}
+                    onChange={(e) => setFormImage(e.target.value)}
+                    placeholder="https://images.unsplash.com/photo-..."
+                    className="flex-1 px-3 py-2.5 rounded-xl bg-[#09090b] border border-white/10 text-white outline-none focus:border-[#10b981] font-mono text-[11px]"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

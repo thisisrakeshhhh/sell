@@ -55,6 +55,7 @@ export const products = sqliteTable("products", {
   season: text("season"),
   tags: text("tags"),
   description: text("description"),
+  imageUrl: text("image_url"),
   basePrice: real("base_price").notNull(),
   discountPrice: real("discount_price"),
   stockS: integer("stock_s").notNull().default(0),

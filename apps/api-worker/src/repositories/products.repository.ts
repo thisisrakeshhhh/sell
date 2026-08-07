@@ -27,6 +27,8 @@ export class ProductsRepository {
     name: string;
     sport?: string;
     club?: string;
+    description?: string;
+    imageUrl?: string;
     basePrice: number;
     stockS?: number;
     stockM?: number;
@@ -46,6 +48,8 @@ export class ProductsRepository {
       name: data.name,
       sport: data.sport || "Football",
       club: data.club || "Custom",
+      description: data.description,
+      imageUrl: data.imageUrl || "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80",
       basePrice: data.basePrice,
       stockS: data.stockS || 0,
       stockM: data.stockM || 0,
