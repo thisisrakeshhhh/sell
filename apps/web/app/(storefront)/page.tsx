@@ -1,9 +1,27 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, Trophy } from "lucide-react";
 
 export default function StorefrontHomePage() {
+  const quotes = [
+    "\"Football is a game of passion, precision, and pride.\"",
+    "\"Class is permanent. Wear the colors of glory.\"",
+    "\"The shirt on your back represents history.\"",
+    "\"Every match day tells a new story.\"",
+    "\"Some people believe football is a matter of life and death. It's much more important than that.\"",
+  ];
+
+  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentQuoteIndex((prev) => (prev + 1) % quotes.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
   const featuredProducts = [
     {
       code: "MU-18",
@@ -49,37 +67,41 @@ export default function StorefrontHomePage() {
 
   return (
     <div className="min-h-screen bg-[#09090b] text-[#f4f4f5]">
-      {/* MINIMAL HIGH-TRUST HERO */}
-      <section className="relative py-20 px-6 max-w-7xl mx-auto text-center">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#10b981]/10 text-[#10b981] text-xs font-mono font-bold mb-4">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Official 24/25 Masterpiece Collection</span>
-        </span>
-        <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight max-w-3xl mx-auto leading-tight">
-          Masterpiece Jerseys. Direct on WhatsApp.
-        </h1>
-        <p className="text-sm sm:text-base text-[#a1a1aa] max-w-xl mx-auto mt-4 leading-relaxed">
-          Inspect high-res photos, size charts, and custom vinyl back print previews. Order directly through WhatsApp.
-        </p>
+      {/* ANIMATED FOOTBALL QUOTE HERO */}
+      <section className="relative py-24 px-6 max-w-7xl mx-auto text-center overflow-hidden">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#10b981]/10 border border-[#10b981]/20 text-[#10b981] text-xs font-mono font-bold mb-6">
+          <Trophy className="w-3.5 h-3.5" />
+          <span>The Heritage Collection</span>
+        </div>
+
+        {/* DYNAMIC CYCLING FOOTBALL QUOTE ANIMATION */}
+        <div className="h-32 sm:h-40 flex items-center justify-center">
+          <h1
+            key={currentQuoteIndex}
+            className="text-3xl sm:text-5xl font-black text-white tracking-tight max-w-4xl mx-auto leading-tight italic font-serif transition-all duration-700 animate-fadeIn"
+          >
+            {quotes[currentQuoteIndex]}
+          </h1>
+        </div>
 
         <div className="mt-8 flex justify-center">
           <Link
             href="/products"
-            className="px-8 py-3.5 rounded-full bg-[#10b981] text-black font-bold text-sm hover:bg-emerald-400 transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20"
+            className="px-8 py-3.5 rounded-full bg-[#10b981] text-black font-bold text-sm hover:bg-emerald-400 transition-all flex items-center gap-2 shadow-xl shadow-emerald-500/20 group"
           >
             <span>Explore Collection</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
       </section>
 
-      {/* FEATURED DIGITAL SHOWROOM */}
+      {/* SHOWROOM CATALOG GRID */}
       <section className="max-w-7xl mx-auto px-6 pb-24">
         <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-xl font-extrabold text-white">Featured Showroom</h2>
-            <p className="text-xs text-[#a1a1aa] mt-0.5">Select a jersey to customize size and back print details.</p>
-          </div>
+          <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-[#10b981]" />
+            <span>Jerseys Collection</span>
+          </h2>
           <Link href="/products" className="text-xs text-[#10b981] hover:underline font-mono font-bold">
             View All ({featuredProducts.length}) →
           </Link>
@@ -131,7 +153,7 @@ export default function StorefrontHomePage() {
 
       {/* FOOTER */}
       <footer className="border-t border-white/10 py-8 px-6 text-center text-xs text-[#a1a1aa]">
-        <p>© 2026 JerseyFlow Digital Showroom. All jersey orders completed via WhatsApp.</p>
+        <p>© 2026 JerseyFlow Digital Showroom.</p>
       </footer>
     </div>
   );
