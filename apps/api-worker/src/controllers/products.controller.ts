@@ -117,23 +117,23 @@ productsRouter.get("/code/:code", async (c) => {
 productsRouter.post("/", async (c) => {
   try {
     const body = await c.req.json();
-    const newProduct = {
-      id: `p_${Date.now()}`,
-      code: body.code || `SKU-${Date.now()}`,
-      slug: (body.name || "jersey").toLowerCase().replace(/\s+/g, "-"),
-      name: body.name || "New Jersey Product",
-      sport: body.sport || "Football",
-      club: body.club || "General",
+    const db = getDb(c.env.DB);
+    const repo = new ProductsRepository(db);
+    
+    const createdProduct = await repo.createProduct({
+      code: body.code,
+      name: body.name,
       basePrice: Number(body.basePrice) || 999,
-      stockS: Number(body.stockS) || 10,
-      stockM: Number(body.stockM) || 10,
-      stockL: Number(body.stockL) || 10,
-      stockXl: Number(body.stockXl) || 5,
-      stock2xl: Number(body.stock2xl) || 2,
-      isActive: true,
-    };
-    return c.json(formatSuccessResponse(newProduct, "Product created successfully"));
+      stockS: Number(body.stockS) || 0,
+      stockM: Number(body.stockM) || 0,
+      stockL: Number(body.stockL) || 0,
+      stockXl: Number(body.stockXl) || 0,
+      stock2xl: Number(body.stock2xl) || 0,
+    });
+
+    return c.json(formatSuccessResponse(createdProduct, "Product stored in D1 database successfully"));
   } catch (err) {
-    return c.json(formatErrorResponse("Failed to create product"), 400);
+    console.log("Error storing product in D1:", err);
+    return c.json(formatErrorResponse("Failed to store product in D1 database"), 500);
   }
 });
