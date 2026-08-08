@@ -10,6 +10,7 @@ export const webhooksRouter = new Hono<{
     WHATSAPP_ACCESS_TOKEN?: string;
     WHATSAPP_PHONE_NUMBER_ID?: string;
     WHATSAPP_VERIFY_TOKEN?: string;
+    TELEGRAM_BOT_TOKEN?: string;
   };
 }>();
 
@@ -55,4 +56,37 @@ webhooksRouter.post("/whatsapp", async (c) => {
   await sender.sendTextMessage(phone, reply);
 
   return c.json(formatSuccessResponse({ phone, incoming: text, reply }, "Webhook processed and automated WhatsApp reply sent"));
+});
+
+// Incoming Telegram Webhook Events (POST)
+webhooksRouter.post("/telegram", async (c) => {
+  const body = await c.req.json();
+  const db = getDb(c.env.DB);
+  const stateMachine = new WhatsAppStateMachine(db);
+
+  const chatId = body.chat_id || body.message?.chat?.id || "tg_demo_user";
+  const phone = `tg_${chatId}`;
+  const text = body.message?.text || body.message || "MU-18";
+
+  const reply = await stateMachine.processIncomingMessage(phone, text);
+
+  // Dispatch to Telegram Bot API if bot token exists
+  const botToken = c.env.TELEGRAM_BOT_TOKEN;
+  if (botToken && chatId) {
+    try {
+      await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: reply,
+          parse_mode: "Markdown",
+        }),
+      });
+    } catch (err) {
+      console.warn("Telegram dispatch warning:", err);
+    }
+  }
+
+  return c.json(formatSuccessResponse({ chatId, incoming: text, reply }, "Telegram message processed & order logged in D1"));
 });

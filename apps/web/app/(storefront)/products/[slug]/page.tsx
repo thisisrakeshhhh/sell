@@ -3,7 +3,7 @@
 import { use, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, MessageCircle, Sparkles } from "lucide-react";
+import { ArrowLeft, MessageCircle, Send, Sparkles } from "lucide-react";
 
 export default function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = use(params);
@@ -38,11 +38,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
     availableSizes: ["S", "M", "L", "XL", "2XL"],
   };
 
-  // EXACT WHATSAPP PAYLOAD
+  // EXACT FORMATTED ORDER PAYLOAD
   const formattedMessage = `Hi, I want to order:\n\nProduct: ${product.name}\nSKU: ${product.code}\nSize: ${selectedSize}\nName: ${customName || "None"}\nNumber: ${customNumber || "None"}\nSource: ${source}\nCampaign: ${campaign}`;
 
-  // DIRECT TARGET TO META TEST NUMBER (+1 555 672-3534)
   const whatsappUrl = `https://wa.me/15556723534?text=${encodeURIComponent(formattedMessage)}`;
+  const telegramUrl = `https://t.me/JerseyFlowBot?start=${encodeURIComponent(`${product.code}_${selectedSize}`)}`;
 
   return (
     <div className="min-h-screen bg-[#09090b] text-[#f4f4f5] pt-8 pb-24 px-6">
@@ -135,16 +135,28 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
               </div>
             </div>
 
-            {/* DIRECT ORDER VIA WHATSAPP CTA */}
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full py-3.5 rounded-full bg-[#10b981] text-black font-bold text-sm hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
-            >
-              <MessageCircle className="w-4 h-4 fill-current" />
-              <span>Order on WhatsApp</span>
-            </a>
+            {/* DIRECT ORDER VIA WHATSAPP OR TELEGRAM CTAS */}
+            <div className="space-y-3">
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3.5 rounded-full bg-[#10b981] text-black font-bold text-sm hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
+              >
+                <MessageCircle className="w-4 h-4 fill-current" />
+                <span>Order on WhatsApp</span>
+              </a>
+
+              <a
+                href={telegramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3.5 rounded-full bg-[#0088cc] text-white font-bold text-sm hover:bg-[#0077b5] transition-all flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20"
+              >
+                <Send className="w-4 h-4" />
+                <span>Order on Telegram</span>
+              </a>
+            </div>
           </div>
         </div>
       </div>
