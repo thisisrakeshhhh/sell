@@ -41,7 +41,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
   // EXACT WHATSAPP PAYLOAD
   const formattedMessage = `Hi, I want to order:\n\nProduct: ${product.name}\nSKU: ${product.code}\nSize: ${selectedSize}\nName: ${customName || "None"}\nNumber: ${customNumber || "None"}\nSource: ${source}\nCampaign: ${campaign}`;
 
-  const whatsappUrl = `https://wa.me/919999999999?text=${encodeURIComponent(formattedMessage)}`;
+  // DIRECT TARGET TO META TEST NUMBER (+1 555 672-3534)
+  const whatsappUrl = `https://wa.me/15556723534?text=${encodeURIComponent(formattedMessage)}`;
 
   return (
     <div className="min-h-screen bg-[#09090b] text-[#f4f4f5] pt-8 pb-24 px-6">
