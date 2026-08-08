@@ -1,6 +1,7 @@
-name = "jerseyflow-api-worker"
+name = "jerseyflow-api-v1"
 main = "src/index.ts"
 compatibility_date = "2024-11-01"
+account_id = "5b5194deaa35116098d3f45dee890e17"
 
 [vars]
 ENVIRONMENT = "production"
@@ -8,13 +9,10 @@ JWT_SECRET = "jerseyflow_production_jwt_secret_key_2026"
 DEFAULT_UPI_ID = "jerseyflow@upi"
 STORE_NAME = "JerseyFlow Store"
 WHATSAPP_VERIFY_TOKEN = "jerseyflow_webhook_secret"
+WHATSAPP_PHONE_NUMBER_ID = "1266379983225569"
+WHATSAPP_BUSINESS_ACCOUNT_ID = "1707833980272775"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "jerseyflow-db"
-database_id = "e4ce34ae-fe12-46ec-9fb8-6366ee38e5f8"
-
-# R2 bucket can be enabled in Cloudflare Dashboard
-# [[r2_buckets]]
-# binding = "MEDIA_BUCKET"
-# bucket_name = "jerseyflow-media"
+database_id = "825209cd-dd08-4c48-bb37-50dc35428e83"

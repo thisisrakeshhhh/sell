@@ -5,6 +5,21 @@ import { eq, and } from "drizzle-orm";
 export class OrdersRepository {
   constructor(private db: DbClient) {}
 
+  async findAll() {
+    return await this.db.select().from(orders);
+  }
+
+  async findByOrderNumber(orderNumber: string) {
+    const cleanNumber = orderNumber.toUpperCase().replace("#", "");
+    const list = await this.db.select().from(orders).where(eq(orders.orderNumber, cleanNumber)).limit(1);
+    return list[0] || null;
+  }
+
+  async findById(orderId: string) {
+    const list = await this.db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+    return list[0] || null;
+  }
+
   async createOrderWithCustomer(orderData: any, customerData: any) {
     const storeId = orderData.storeId || "store_default";
 
@@ -104,10 +119,5 @@ export class OrdersRepository {
     });
 
     return { orderId, orderNumber };
-  }
-
-  async findById(orderId: string) {
-    const list = await this.db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
-    return list[0] || null;
   }
 }

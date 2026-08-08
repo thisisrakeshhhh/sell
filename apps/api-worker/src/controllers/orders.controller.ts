@@ -6,6 +6,32 @@ import { formatSuccessResponse, formatErrorResponse } from "../middleware/error"
 
 export const ordersRouter = new Hono<{ Bindings: { DB: D1Database; MEDIA_BUCKET: R2Bucket } }>();
 
+ordersRouter.get("/", async (c) => {
+  try {
+    const db = getDb(c.env.DB);
+    const repo = new OrdersRepository(db);
+    const items = await repo.findAll();
+    return c.json(formatSuccessResponse(items, "Orders fetched successfully"));
+  } catch (err) {
+    return c.json(formatErrorResponse("Failed to fetch orders"), 500);
+  }
+});
+
+ordersRouter.get("/:orderNumber", async (c) => {
+  const orderNumber = c.req.param("orderNumber");
+  try {
+    const db = getDb(c.env.DB);
+    const repo = new OrdersRepository(db);
+    const item = await repo.findByOrderNumber(orderNumber);
+    if (item) {
+      return c.json(formatSuccessResponse(item, "Order details fetched successfully"));
+    }
+    return c.json(formatErrorResponse(`Order #${orderNumber} not found`), 404);
+  } catch (err) {
+    return c.json(formatErrorResponse("Failed to fetch order details"), 500);
+  }
+});
+
 ordersRouter.post("/", async (c) => {
   const body = await c.req.json();
   const validation = createOrderSchema.safeParse(body);
@@ -27,7 +53,6 @@ ordersRouter.post("/", async (c) => {
   const db = getDb(c.env.DB);
   const repo = new OrdersRepository(db);
 
-  // Default product price mockup fallback if DB product lookup is handled in service layer
   const totalAmount = 999 * input.quantity;
 
   const result = await repo.createOrderWithCustomer(
