@@ -16,6 +16,8 @@ export async function handleWaitingAddress(
   const orderId = `ord_${Date.now()}`;
   const orderNumber = `JF-${Math.floor(1000 + Math.random() * 9000)}`;
   const totalAmount = context.price || 999;
+  const upiId = "jerseyflow@upi";
+  const upiPayUrl = `upi://pay?pa=${upiId}&pn=JerseyFlow&am=${totalAmount}&cu=INR&tn=${orderNumber}`;
 
   // 1. Create Draft Order in D1 Database
   await db.insert(draftOrders).values({
@@ -56,7 +58,7 @@ export async function handleWaitingAddress(
       storeId,
       orderId,
       eventType: "ORDER_CREATED",
-      title: "Order Booked via WhatsApp",
+      title: "Order Booked via WhatsApp/Telegram",
       description: `Order ${orderNumber} created for ${context.productName || context.sku}`,
     });
   } catch (err) {
@@ -73,7 +75,10 @@ export async function handleWaitingAddress(
 *Delivery Address:* ${address}
 
 💳 *Total Amount:* ₹${totalAmount} (Free Express Delivery)
-*UPI ID:* \`jerseyflow@upi\`
+*UPI ID:* \`${upiId}\`
+
+📲 *Direct 1-Click Pay (GPay / PhonePe / Paytm):*
+${upiPayUrl}
 
 📦 *Live Order Tracking:*
 http://localhost:3000/track/${orderNumber}

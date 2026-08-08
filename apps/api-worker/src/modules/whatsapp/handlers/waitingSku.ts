@@ -1,6 +1,6 @@
 import { DbClient } from "../../../db";
 import { products } from "../../../db/schema";
-import { eq, like, or } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { ConversationContext } from "../state-machine";
 
 export async function handleWaitingSku(
@@ -9,6 +9,7 @@ export async function handleWaitingSku(
   context: ConversationContext
 ): Promise<{ nextState: string; reply: string; updatedContext: ConversationContext }> {
   const cleanText = text.trim();
+  const lowerText = cleanText.toLowerCase();
   const upperText = cleanText.toUpperCase();
 
   // 1. CHECK IF INCOMING MESSAGE IS MULTI-LINE SHOWROOM PAYLOAD FROM WEBSITE
@@ -43,7 +44,7 @@ export async function handleWaitingSku(
     };
   }
 
-  // 2. CHECK EXACT SKU MATCH (Case-Insensitive e.g. "BAR-004", "bar-004", "MU-18")
+  // 2. CHECK EXACT SKU MATCH (Case-Insensitive e.g. "BAR-004", "bar-004", "RMA-007", "MU-18")
   const allProducts = await db.select().from(products);
   const matchedProduct = allProducts.find((p) => p.code.toUpperCase() === upperText || upperText.includes(p.code.toUpperCase()));
 
@@ -60,35 +61,57 @@ export async function handleWaitingSku(
     };
   }
 
-  // 3. CASUAL GREETING & GEN-Z / HINGLISH CONVERSATIONAL BOT
-  const lowerText = cleanText.toLowerCase();
-
+  // 3. STEP 1: CASUAL INITIAL GREETING (Gen-Z Hinglish)
   if (["hi", "hello", "hlo", "hyy", "hey", "start", "/start", "yo", "sup", "bhai"].includes(lowerText)) {
     return {
       nextState: "WAITING_SKU",
-      reply: `Hyy! 👋 Welcome to JerseyFlow! 🔥\n\nLooking to cook something fire for school, college, or turf today? ⚽\nWhat jersey or player are you looking for? (e.g. CR7, Messi, Barca, Real Madrid, India)\n\nOr reply with a SKU code like *BAR-004*, *MU-18*, *RMA-007*, *IND-18*!`,
+      reply: `Hyy! 👋 Welcome to JerseyFlow Store! 🔥\n\nHow can I assist you today? Are you looking to cook something fire for school, college, or turf today? ⚽`,
       updatedContext: context,
     };
   }
 
-  // 4. KEYWORD ASSISTANT SEARCH (CR7, RONALDO, MESSI, BARCA, MADRID, CLOTH, LOOKING)
+  // 4. STEP 2: GENERAL CATEGORY INTEREST ("looking for cloth", "jercy", "clothes")
+  if (
+    lowerText.includes("cloth") ||
+    lowerText.includes("looking") ||
+    lowerText.includes("jercy") ||
+    lowerText.includes("jersey") ||
+    lowerText.includes("drip") ||
+    lowerText.includes("wear")
+  ) {
+    return {
+      nextState: "WAITING_SKU",
+      reply: `Ayy looking to cook at school, college, or turf huh! ⚽🔥\n\nWhat vibe are you looking for? Reply with a specific player/team (e.g. *CR7*, *Barca*, *Real Madrid*, *India*) or reply *OVERALL COLLECTION* to explore all jerseys!`,
+      updatedContext: context,
+    };
+  }
+
+  // 5. STEP 3: OVERALL COLLECTION REQUEST
+  if (lowerText.includes("overall") || lowerText.includes("collection") || lowerText.includes("all")) {
+    return {
+      nextState: "WAITING_SKU",
+      reply: `Explore our complete master quality showroom collection here:  \n👉 🌐 http://localhost:3000/products\n\nReply with any SKU code (e.g. *BAR-004*, *MU-18*, *RMA-007*) to start customizing your back print name & number!`,
+      updatedContext: context,
+    };
+  }
+
+  // 6. STEP 4: SPECIFIC PLAYER / TEAM SEARCH (CR7, CR07, RONALDO, MESSI, BARCA, MADRID, INDIA)
   if (
     lowerText.includes("cr7") ||
+    lowerText.includes("cr07") ||
     lowerText.includes("ronaldo") ||
     lowerText.includes("messi") ||
     lowerText.includes("barca") ||
     lowerText.includes("barcelona") ||
     lowerText.includes("madrid") ||
     lowerText.includes("real") ||
-    lowerText.includes("india") ||
-    lowerText.includes("cloth") ||
-    lowerText.includes("looking") ||
-    lowerText.includes("jercy") ||
-    lowerText.includes("jersey")
+    lowerText.includes("manchester") ||
+    lowerText.includes("united") ||
+    lowerText.includes("india")
   ) {
     return {
       nextState: "WAITING_SKU",
-      reply: `Yo! We got top tier master quality jerseys in stock! ⚽🔥\n\nPopular Picks:\n• *Real Madrid CR7 Edition* (SKU: *RMA-007*) - ₹999\n• *FC Barcelona Home 24/25* (SKU: *BAR-004*) - ₹1099\n• *FC Barcelona Away 24/25* (SKU: *BAR-10*) - ₹1099\n• *Man United Home 24/25* (SKU: *MU-18*) - ₹999\n• *Team India T20 Kit* (SKU: *IND-18*) - ₹899\n\n🌐 View full collection:\nhttp://localhost:3000/products\n\nReply with any SKU code (e.g. *BAR-004* or *RMA-007*) to customize back print name & number!`,
+      reply: `Oh fire choice! ⚽🔥 We got these top tier master quality options in stock:\n\n• *Real Madrid CR7 Edition* (SKU: *RMA-007*) - ₹999\n  👉 View Photos: http://localhost:3000/products/real-madrid-home-24-25\n\n• *FC Barcelona Home 24/25* (SKU: *BAR-004*) - ₹1099\n  👉 View Photos: http://localhost:3000/products/fc-barcelona-away-24-25\n\n• *Man United Home 24/25* (SKU: *MU-18*) - ₹999\n  👉 View Photos: http://localhost:3000/products/manchester-united-home-24-25\n\nReply with SKU (e.g. *RMA-007*) to start back print customization!`,
       updatedContext: context,
     };
   }
