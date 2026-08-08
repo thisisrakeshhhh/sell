@@ -46,16 +46,16 @@ webhooksRouter.post("/whatsapp", async (c) => {
     "MU-18";
 
   // Process through state machine
-  const reply = await stateMachine.processIncomingMessage(phone, text);
+  const res = await stateMachine.processIncomingMessage(phone, text);
 
   // Dispatch real outgoing WhatsApp message back to user via Meta API
   const sender = new WhatsAppSender(
     c.env.WHATSAPP_ACCESS_TOKEN,
     c.env.WHATSAPP_PHONE_NUMBER_ID
   );
-  await sender.sendTextMessage(phone, reply);
+  await sender.sendTextMessage(phone, res.reply);
 
-  return c.json(formatSuccessResponse({ phone, incoming: text, reply }, "Webhook processed and automated WhatsApp reply sent"));
+  return c.json(formatSuccessResponse({ phone, incoming: text, reply: res.reply, buttons: res.buttons }, "Webhook processed and automated WhatsApp reply sent"));
 });
 
 // Incoming Telegram Webhook Events (POST)
@@ -64,14 +64,39 @@ webhooksRouter.post("/telegram", async (c) => {
   const db = getDb(c.env.DB);
   const stateMachine = new WhatsAppStateMachine(db);
 
-  const chatId = body.chat_id || body.message?.chat?.id || "tg_demo_user";
+  // Support both normal text messages AND inline button clicks (callback_query)
+  const isCallback = Boolean(body.callback_query);
+  const chatId = body.chat_id || body.callback_query?.message?.chat?.id || body.message?.chat?.id || "tg_demo_user";
+  const callbackQueryId = body.callback_query?.id;
   const phone = `tg_${chatId}`;
-  const text = body.message?.text || body.message || "MU-18";
+  const text = body.callback_query?.data || body.message?.text || body.message || "MU-18";
 
-  const reply = await stateMachine.processIncomingMessage(phone, text);
+  // Process through state machine
+  const res = await stateMachine.processIncomingMessage(phone, text);
 
-  // Dispatch to Telegram Bot API if bot token exists
   const botToken = c.env.TELEGRAM_BOT_TOKEN;
+
+  // Answer callback query if button was clicked to dismiss Telegram loading clock
+  if (botToken && isCallback && callbackQueryId) {
+    try {
+      await fetch(`https://api.telegram.org/bot${botToken}/answerCallbackQuery`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ callback_query_id: callbackQueryId }),
+      });
+    } catch (err) {
+      console.warn("Telegram answerCallbackQuery warning:", err);
+    }
+  }
+
+  // Format interactive inline buttons for Telegram
+  const inlineKeyboard = res.buttons && res.buttons.length > 0
+    ? {
+        inline_keyboard: res.buttons.map((b) => [{ text: b.text, callback_data: b.value }]),
+      }
+    : undefined;
+
+  // Dispatch to Telegram Bot API
   if (botToken && chatId) {
     try {
       await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
@@ -79,14 +104,15 @@ webhooksRouter.post("/telegram", async (c) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           chat_id: chatId,
-          text: reply,
+          text: res.reply,
           parse_mode: "Markdown",
+          reply_markup: inlineKeyboard,
         }),
       });
     } catch (err) {
-      console.warn("Telegram dispatch warning:", err);
+      console.warn("Telegram sendMessage warning:", err);
     }
   }
 
-  return c.json(formatSuccessResponse({ chatId, incoming: text, reply }, "Telegram message processed & order logged in D1"));
+  return c.json(formatSuccessResponse({ chatId, incoming: text, reply: res.reply, buttons: res.buttons }, "Telegram message processed & order logged in D1"));
 });

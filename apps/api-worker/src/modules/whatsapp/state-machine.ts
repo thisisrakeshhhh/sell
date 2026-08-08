@@ -20,10 +20,20 @@ export interface ConversationContext {
   address?: string;
 }
 
+export interface ChatButton {
+  text: string;
+  value: string;
+}
+
+export interface ProcessedMessageResult {
+  reply: string;
+  buttons?: ChatButton[];
+}
+
 export class WhatsAppStateMachine {
   constructor(private db: DbClient) {}
 
-  async processIncomingMessage(phone: string, text: string, storeId: string = "store_default"): Promise<string> {
+  async processIncomingMessage(phone: string, text: string, storeId: string = "store_default"): Promise<ProcessedMessageResult> {
     const cleanText = text.trim();
     const lowerText = cleanText.toLowerCase();
 
@@ -83,6 +93,7 @@ export class WhatsAppStateMachine {
 
     let nextState = currentState;
     let reply = "";
+    let buttons: ChatButton[] | undefined;
     let updatedContext = { ...context };
     let draftId: string | undefined;
 
@@ -92,6 +103,7 @@ export class WhatsAppStateMachine {
         const result = await handleWaitingSku(this.db, cleanText, context);
         nextState = result.nextState;
         reply = result.reply;
+        buttons = result.buttons;
         updatedContext = result.updatedContext;
         break;
       }
@@ -135,6 +147,7 @@ export class WhatsAppStateMachine {
         const result = await handleWaitingSku(this.db, cleanText, context);
         nextState = result.nextState;
         reply = result.reply;
+        buttons = result.buttons;
         updatedContext = result.updatedContext;
         break;
       }
@@ -160,6 +173,6 @@ export class WhatsAppStateMachine {
       message: reply,
     });
 
-    return reply;
+    return { reply, buttons };
   }
 }
