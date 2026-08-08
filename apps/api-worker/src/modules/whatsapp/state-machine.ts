@@ -25,6 +25,7 @@ export class WhatsAppStateMachine {
 
   async processIncomingMessage(phone: string, text: string, storeId: string = "store_default"): Promise<string> {
     const cleanText = text.trim();
+    const lowerText = cleanText.toLowerCase();
 
     // 1. Ensure Customer Record
     let customer = (await this.db.select().from(customers).where(eq(customers.phoneNumber, phone)).limit(1))[0];
@@ -64,13 +65,29 @@ export class WhatsAppStateMachine {
       message: cleanText,
     });
 
-    let nextState = session.currentState;
+    let currentState = session.currentState;
+
+    // Reset to WAITING_SKU if user initiates new greeting, /start, website payload, or sends a new SKU code
+    if (
+      lowerText === "/start" ||
+      lowerText === "start" ||
+      lowerText === "hi" ||
+      lowerText === "hello" ||
+      lowerText === "hlo" ||
+      lowerText === "hey" ||
+      text.includes("SKU:") ||
+      /^[A-Za-z]+-[0-9]+$/i.test(cleanText)
+    ) {
+      currentState = "WAITING_SKU";
+    }
+
+    let nextState = currentState;
     let reply = "";
     let updatedContext = { ...context };
     let draftId: string | undefined;
 
     // 4. ROUTE TO ISOLATED STATE HANDLERS
-    switch (session.currentState) {
+    switch (currentState) {
       case "WAITING_SKU": {
         const result = await handleWaitingSku(this.db, cleanText, context);
         nextState = result.nextState;
@@ -115,8 +132,10 @@ export class WhatsAppStateMachine {
         break;
       }
       default: {
-        reply = `Hi 👋\nWelcome to JerseyFlow! Reply with a product SKU code (e.g. *MU-001*, *BAR-004*, *RMA-007*, *IND-002*) to view details & start your order.`;
-        nextState = "WAITING_SKU";
+        const result = await handleWaitingSku(this.db, cleanText, context);
+        nextState = result.nextState;
+        reply = result.reply;
+        updatedContext = result.updatedContext;
         break;
       }
     }
