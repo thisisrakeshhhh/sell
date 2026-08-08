@@ -6,7 +6,7 @@ export class WhatsAppSender {
     this.apiToken =
       apiToken ||
       "EAAVsOb4k3lMBSBxcN63T4cfZBENZBp9xmEasQZBTHRo5Kj02ZBNLWDu1cXjO8fPtSx3vuDfmXbXqvWdSZCy6M2u3FfSgmNZBTN79eWDtB7HjV1MZC3xsxb7ZBUDfHjqHH6eV7qHZBvqGlZAWM5GuE5i286MPqbk9lLNPA3LfAv0poZAcZCY5ScZApCm8y4XjbCJYg9gOpUY83ubFgBUMd8BPRKO4OD8ZCSE35zYpAbLr5Q6AhOIZA5Ryyc8rsdm7HgQTlQ9Ja3NQC1DyypZAnuuz0ckIQJ1l";
-    this.phoneNumberId = phoneNumberId || "1266379983225569";
+    this.phoneNumberId = phoneNumberId || "1330429936812073";
   }
 
   async sendTextMessage(toPhone: string, text: string) {
